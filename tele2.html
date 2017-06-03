@@ -1,0 +1,64 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+
+    <script type="text/javascript" src="2017_06_02T20_35_55_telegramContest.js"></script>
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', { 'packages': ['treemap'] });
+        google.charts.setOnLoadCallback(drawChart);
+
+
+        //theInfo; 
+        //1. Group by candidates
+        var candidatesGroupName = [];
+        theInfo.forEach((templateEl, i) => {
+            templateEl.candidates.forEach((candidate, i) => {
+                if (!candidatesGroupName[candidate.nickName])
+                    candidatesGroupName[candidate.nickName] = [];
+
+                candidatesGroupName[candidate.nickName].push(candidate);
+            });
+        });
+
+        var candidatesGroupNameViz = [];
+
+        for (var key in candidatesGroupName) {
+            let value = candidatesGroupName[key];
+            candidatesGroupNameViz.push([key+" ("+value.length+")", 'Total', value.length, value.length]);
+        }
+
+
+
+        function drawChart() {
+
+            var futureData = [
+                ['Location', 'Parent', 'Template candidates', 'Color'],
+                ['Total', null, 0, 0],
+            ].concat(candidatesGroupNameViz);
+
+            var data = google.visualization.arrayToDataTable(futureData);
+
+
+            tree = new google.visualization.TreeMap(document.getElementById('chart_div'));
+
+            tree.draw(data, {
+                minColor: '#5b6bff',
+                midColor: '#a55bff',
+                maxColor: '#5bfff1',
+                headerHeight: 15,
+                fontColor: 'black',
+                showScale: true
+            });
+
+        }
+    </script>
+</head>
+
+<body>
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+</body>
+
+</html>
