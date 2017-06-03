@@ -11,7 +11,7 @@ const cheerio = require('cheerio');
 
 const fs = require('fs-extra');
 
-const instaUrl="https://instantview.telegram.org";
+const instaUrl = "https://instantview.telegram.org";
 
 
 
@@ -20,7 +20,7 @@ const instaUrl="https://instantview.telegram.org";
 function saveToFile() {
 	console.log("START");
 
-	request(instaUrl+"/contest", function (err, response, body) {
+	request(instaUrl + "/contest", function (err, response, body) {
 
 		if (!err && response.statusCode == 200) {
 			//console.log(body);
@@ -28,74 +28,94 @@ function saveToFile() {
 
 			console.log($('h1').text());
 
-			var templateUrlList=[];
+			var templateUrlList = [];
 
-			$(".list-group-contest-item").each((i,el)=>{
-				var domain=$(el).find(".contest-item-domain a");
-				var template=$(el).find(".contest-item-templates a");
-				var domainName=domain.text().trim();
-				var templateUrl=template.attr("href");
+			$(".list-group-contest-item").each((i, el) => {
+				var domain = $(el).find(".contest-item-domain a");
+				var template = $(el).find(".contest-item-templates a");
+				var domainName = domain.text().trim();
+				var templateUrl = template.attr("href");
 				//console.log("> "+domainName+" >> "+instaUrl+templateUrl);
 				templateUrlList.push(templateUrl);
 			});
-			
-			
+
+
 			//var templateUrlList=templateUrlList.slice(0,1);
 
-			async.mapLimit(templateUrlList,20,
-					(function (templateUrl, callback) {
+			async.mapLimit(templateUrlList, 20,
+				(function (templateUrl, callback) {
 
-						request(instaUrl+templateUrl, function (error, response, body) {
-							if (!error && response.statusCode == 200) {
-								if (!body) {
-									callback("Template page has no body", 0);
-								} else {
-									var $ = cheerio.load(body);
-									var candidates=$(".contest-section").first().find(".list-group-contest-item");
-									var candidatesInfo=[];
-									candidates.each((i,el)=>{
-										var els=$(el);
-										candidate={											
-											"nickName":els.find(".contest-item-author").text(),
-											"nickURL":els.find(".contest-item-author a").attr("href"),
-											"templateURL":els.find(".contest-item-num a").attr("href"),
-											"templateStatus":els.find(".contest-item-status").text(),
-											"lastUpdate":els.find(".contest-item-date").text()
+					request(instaUrl + templateUrl, function (error, response, body) {
+						if (!error && response.statusCode == 200) {
+							if (!body) {
+								callback("Template page has no body", 0);
+							} else {
+								var $ = cheerio.load(body);
+								var candidates = $(".contest-section").first().find(".list-group-contest-item");
+								var candidatesInfo = [];
+								if (candidates.length > 0) {
+									candidates.each((i, el) => {
+										var els = $(el);
+										candidate = {
+											"nickName": els.find(".contest-item-author").text(),
+											"nickURL": els.find(".contest-item-author a").attr("href"),
+											"templateURL": els.find(".contest-item-num a").attr("href"),
+											"templateStatus": els.find(".contest-item-status").text(),
+											"lastUpdate": els.find(".contest-item-date").text()
 										};
 										candidatesInfo.push(candidate);
 									});
-
-									var infoObject={
-										"domain":$("#breadcrumb li.active").text(),
-										"totalTemplates":$(".contest-section .list-group-contest-item").length,
-										"candidateTemplates":candidates.length,
-										"candidates":candidatesInfo
-									};
-
-									callback(null, infoObject);
 								}
-							} else {
-								callback("Template page opening failed", 0);
+
+								var declined = $(".contest-section").first().next().find(".list-group-contest-item");
+								var declinedsInfo = [];
+								if (declined.length > 0) {
+									declined.each((i, el) => {
+										var els = $(el);
+										candidate = {
+											"nickName": els.find(".contest-item-author").text(),
+											"nickURL": els.find(".contest-item-author a").attr("href"),
+											"templateURL": els.find(".contest-item-num a").attr("href"),
+											"templateStatus": els.find(".contest-item-status").text(),
+											"lastUpdate": els.find(".contest-item-date").text()
+										};
+										declinedsInfo.push(candidate);
+									});
+								}
+
+								var infoObject = {
+									"domain": $("#breadcrumb li.active").text(),
+									"totalTemplates": $(".contest-section .list-group-contest-item").length,
+									"candidateTemplates": candidates.length,
+									"candidates": candidatesInfo,
+									"declined": declinedsInfo
+								};
+
+								callback(null, infoObject);
 							}
-						}.bind({ templateUrl: templateUrl }));
-
-
-					}),
-					function (err, infoObjectArray) {
-						if (err) {
-							console.log("Some Template Page Error");
 						} else {
-							var nowTime=new Date().toISOString().slice(0, 19).replace(/:/g, '_').replace(/-/g, '_');
-							logToFile(nowTime+"_telegramContest.json", infoObjectArray);
-							console.log("END");
+							callback("Template page opening failed", 0);
 						}
-					});
+					}.bind({ templateUrl: templateUrl }));
 
-			
 
-			
-			
-			
+				}),
+				function (err, infoObjectArray) {
+					if (err) {
+						console.log("Some Template Page Error");
+					} else {
+						var nowTime = new Date().toISOString().slice(0, 19).replace(/:/g, '_').replace(/-/g, '_');
+						//logToFile(nowTime + "_telegramContest.json", infoObjectArray);
+						logToJSFile(nowTime + "_telegramContest", infoObjectArray);
+						console.log("END");
+					}
+				});
+
+
+
+
+
+
 		} else {
 			console.log("Request main page URL error");
 		}
@@ -113,12 +133,25 @@ fs.readJson('text.json', (err, data) => {
 
 function logToFile(file_name, jsonResult) {
 
-    fs.writeFile(file_name, JSON.stringify(jsonResult), function (err) {
-        if (err) {
-            console.log(err);
-            return false;
-        } else {
-            console.log(file_name + " written");
-        }
-    });
+	fs.writeFile(file_name, JSON.stringify(jsonResult), function (err) {
+		if (err) {
+			console.log(err);
+			return false;
+		} else {
+			console.log(file_name + " written");
+		}
+	});
+}
+
+function logToJSFile(file_name, jsonResult) {
+	var content="var theInfo="+JSON.stringify(jsonResult)+";";
+	
+	fs.writeFile(file_name+".js", content, function (err) {
+		if (err) {
+			console.log(err);
+			return false;
+		} else {
+			console.log(file_name+".js" + " written");
+		}
+	});
 }

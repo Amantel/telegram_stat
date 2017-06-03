@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
 
-    <script type="text/javascript" src="2017_06_02T20_35_55_telegramContest.js"></script>
+    <script type="text/javascript" src="2017_06_03T10_55_53_telegramContest.js"></script>
 
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
@@ -13,20 +13,33 @@
         //theInfo; 
         //1. Group by candidates
         var candidatesGroupName = [];
+        var totalCandidates=0;
         theInfo.forEach((templateEl, i) => {
+
+
             templateEl.candidates.forEach((candidate, i) => {
                 if (!candidatesGroupName[candidate.nickName])
-                    candidatesGroupName[candidate.nickName] = [];
+                    candidatesGroupName[candidate.nickName] = {"candidates":[],"declined":[]};
 
-                candidatesGroupName[candidate.nickName].push(candidate);
+                candidatesGroupName[candidate.nickName].candidates.push(candidate);
             });
+ 
+            templateEl.declined.forEach((decline, i) => {
+                if (!candidatesGroupName[decline.nickName])
+                    candidatesGroupName[decline.nickName] = {"candidates":[],"declined":[]};
+
+                candidatesGroupName[decline.nickName].declined.push(decline);
+            });            
+
+
         });
 
-        var candidatesGroupNameViz = [];
+        var candidatesGroupNameViz = []; 
 
         for (var key in candidatesGroupName) {
+            totalCandidates++;
             let value = candidatesGroupName[key];
-            candidatesGroupNameViz.push([key, value.length, value.length]);
+            candidatesGroupNameViz.push([key, value.candidates.length,value.declined.length,value.candidates.length+"/"+value.declined.length]);
         }
 
 
@@ -34,7 +47,7 @@
         function drawBasic() {
 
             var futureData = [
-                ['Name', 'Candidate Templates', { role: 'annotation' }],
+                ['Name', 'Candidate Templates','Declined Templates', { role: 'annotation' }],
             ].concat(candidatesGroupNameViz);
 
 
@@ -62,12 +75,22 @@
                         0: { side: 'top' }
                     }
                 },
+               
+
                 annotations: {
                     textStyle: {
                         fontSize: 14,
-                        opacity: 0.8
-                    }
-                }
+                        opacity: 0.8,
+                    },
+                    alwaysOutside:true
+
+                },
+                bar: { groupWidth: '75%' },
+                isStacked: true,
+                width:"100%",
+                height:totalCandidates*30,
+        
+                
 
 
             };
@@ -84,7 +107,7 @@
 </head>
 
 <body>
-    <div id="chart_div" style="width: 100%; height: 13000px;"></div>
+    <div id="chart_div"></div>
 </body>
 
 </html>
