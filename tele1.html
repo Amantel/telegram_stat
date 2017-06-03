@@ -13,33 +13,33 @@
         //theInfo; 
         //1. Group by candidates
         var candidatesGroupName = [];
-        var totalCandidates=0;
+        var totalCandidates = 0;
         theInfo.forEach((templateEl, i) => {
 
 
             templateEl.candidates.forEach((candidate, i) => {
                 if (!candidatesGroupName[candidate.nickName])
-                    candidatesGroupName[candidate.nickName] = {"candidates":[],"declined":[]};
+                    candidatesGroupName[candidate.nickName] = { "candidates": [], "declined": [] };
 
                 candidatesGroupName[candidate.nickName].candidates.push(candidate);
             });
- 
+
             templateEl.declined.forEach((decline, i) => {
                 if (!candidatesGroupName[decline.nickName])
-                    candidatesGroupName[decline.nickName] = {"candidates":[],"declined":[]};
+                    candidatesGroupName[decline.nickName] = { "candidates": [], "declined": [] };
 
                 candidatesGroupName[decline.nickName].declined.push(decline);
-            });            
+            });
 
 
         });
 
-        var candidatesGroupNameViz = []; 
+        var candidatesGroupNameViz = [];
 
         for (var key in candidatesGroupName) {
             totalCandidates++;
             let value = candidatesGroupName[key];
-            candidatesGroupNameViz.push([key, value.candidates.length,value.declined.length,value.candidates.length+"/"+value.declined.length]);
+            candidatesGroupNameViz.push([key, value.candidates.length, value.declined.length, value.candidates.length + "/" + value.declined.length]);
         }
 
 
@@ -47,7 +47,7 @@
         function drawBasic() {
 
             var futureData = [
-                ['Name', 'Candidate Templates','Declined Templates', { role: 'annotation' }],
+                ['Name', 'Candidate Templates', 'Declined Templates', { role: 'annotation' }],
             ].concat(candidatesGroupNameViz);
 
 
@@ -75,22 +75,24 @@
                         0: { side: 'top' }
                     }
                 },
-               
+                tooltip:
+                { textStyle: {  color: '#005500', fontSize: '12', paddingRight: '100', marginRight: '100' }, showColorCode: true },
+
 
                 annotations: {
                     textStyle: {
                         fontSize: 14,
                         opacity: 0.8,
                     },
-                    alwaysOutside:true
+                    alwaysOutside: true
 
                 },
                 bar: { groupWidth: '75%' },
                 isStacked: true,
-                width:"100%",
-                height:totalCandidates*30,
-        
-                
+                width: "100%",
+                height: totalCandidates * 30,
+
+
 
 
             };
